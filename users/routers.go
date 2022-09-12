@@ -2,12 +2,15 @@ package users
 
 import (
 	"errors"
-	"github.com/gothinkster/golang-gin-realworld-example-app/common"
-	"github.com/gin-gonic/gin"
+	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 )
 
 func UsersRegister(router *gin.RouterGroup) {
+	router.GET("/all", AllUsers)
 	router.POST("/", UsersRegistration)
 	router.POST("/login", UsersLogin)
 }
@@ -69,6 +72,21 @@ func ProfileUnfollow(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"profile": serializer.Response()})
 }
 
+func AllUsers(c *gin.Context) {
+	users, count, err := FindAllUsers()
+
+	fmt.Printf("AllUsers(): err = %v\n", err)
+
+	if err == nil {
+		fmt.Println("  seraliszing...")
+		serializer := UsersSerializer{c, users}
+		c.JSON(http.StatusOK, gin.H{"users": serializer.Response(), "usersCount": count})
+	} else {
+		c.JSON(http.StatusUnprocessableEntity, common.NewError("database", err))
+		return
+	}
+}
+
 func UsersRegistration(c *gin.Context) {
 	userModelValidator := NewUserModelValidator()
 	if err := userModelValidator.Bind(c); err != nil {
@@ -81,7 +99,7 @@ func UsersRegistration(c *gin.Context) {
 		return
 	}
 	c.Set("my_user_model", userModelValidator.userModel)
-	serializer := UserSerializer{c}
+	serializer := UserSerializer{c, userModelValidator.userModel}
 	c.JSON(http.StatusCreated, gin.H{"user": serializer.Response()})
 }
 
@@ -103,12 +121,13 @@ func UsersLogin(c *gin.Context) {
 		return
 	}
 	UpdateContextUserModel(c, userModel.ID)
-	serializer := UserSerializer{c}
+	serializer := UserSerializer{c, userModel}
 	c.JSON(http.StatusOK, gin.H{"user": serializer.Response()})
 }
 
 func UserRetrieve(c *gin.Context) {
-	serializer := UserSerializer{c}
+	myUserModel := c.MustGet("my_user_model").(UserModel)
+	serializer := UserSerializer{c, myUserModel}
 	c.JSON(http.StatusOK, gin.H{"user": serializer.Response()})
 }
 
@@ -126,6 +145,6 @@ func UserUpdate(c *gin.Context) {
 		return
 	}
 	UpdateContextUserModel(c, myUserModel.ID)
-	serializer := UserSerializer{c}
+	serializer := UserSerializer{c, myUserModel}
 	c.JSON(http.StatusOK, gin.H{"user": serializer.Response()})
 }

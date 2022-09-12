@@ -2,8 +2,10 @@ package users
 
 import (
 	"errors"
-	"github.com/jinzhu/gorm"
+	"fmt"
+
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
+	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -68,6 +70,25 @@ func (u *UserModel) checkPassword(password string) error {
 	bytePassword := []byte(password)
 	byteHashedPassword := []byte(u.PasswordHash)
 	return bcrypt.CompareHashAndPassword(byteHashedPassword, bytePassword)
+}
+
+func FindAllUsers() ([]UserModel, int, error) {
+	db := common.GetDB()
+	var models []UserModel
+	var count int
+
+	fmt.Println("FindAllUsers()")
+
+	tx := db.Begin()
+
+	db.Model(&models).Count(&count)
+	db.Find(&models)
+
+	fmt.Printf("Got %d users\n", count)
+
+	err := tx.Commit().Error
+
+	return models, count, err
 }
 
 // You could input the conditions and it will return an UserModel in database with error info.

@@ -5,10 +5,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/jinzhu/gorm"
 	"github.com/gothinkster/golang-gin-realworld-example-app/articles"
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
 	"github.com/gothinkster/golang-gin-realworld-example-app/users"
+	"github.com/jinzhu/gorm"
 )
 
 func Migrate(db *gorm.DB) {
@@ -40,6 +40,7 @@ func main() {
 
 	articles.ArticlesRegister(v1.Group("/articles"))
 
+	// Simple /api/ping -> "pong"
 	testAuth := r.Group("/api/ping")
 
 	testAuth.GET("/", func(c *gin.Context) {
@@ -48,18 +49,41 @@ func main() {
 		})
 	})
 
-	// test 1 to 1
-	tx1 := db.Begin()
-	userA := users.UserModel{
-		Username: "AAAAAAAAAAAAAAAA",
-		Email:    "aaaa@g.cn",
-		Bio:      "hehddeda",
-		Image:    nil,
+	// Check if wew have already created user below
+	var user users.UserModel
+	chk1 := db.Begin()
+	res := chk1.First(&user)
+	chk1.Commit()
+	if res.Error != nil {
+		// test 1 to 1
+		tx1 := db.Begin()
+		userA := users.UserModel{
+			Username: "AAAAAAAAAAAAAAAA",
+			Email:    "aaaa@g.cn",
+			Bio:      "hehddeda",
+			Image:    nil,
+		}
+		tx1.Save(&userA)
+		tx1.Commit()
+		fmt.Println(userA)
+	} else {
+		fmt.Println("Initial user exists")
 	}
-	tx1.Save(&userA)
-	tx1.Commit()
-	fmt.Println(userA)
 
+	// Old initialisation code - ran always :(
+	// // test 1 to 1
+	// tx1 := db.Begin()
+	// userA := users.UserModel{
+	// 	Username: "AAAAAAAAAAAAAAAA",
+	// 	Email:    "aaaa@g.cn",
+	// 	Bio:      "hehddeda",
+	// 	Image:    nil,
+	// }
+	// tx1.Save(&userA)
+	// tx1.Commit()
+	// fmt.Println(userA)
+
+	// TODO: What is this - seems broken!
 	//db.Save(&ArticleUserModel{
 	//    UserModelID:userA.ID,
 	//})
