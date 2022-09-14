@@ -2,8 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 
+	"github.com/gin-contrib/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 
 	"github.com/gothinkster/golang-gin-realworld-example-app/articles"
 	"github.com/gothinkster/golang-gin-realworld-example-app/common"
@@ -20,13 +24,7 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(&articles.CommentModel{})
 }
 
-func main() {
-
-	db := common.Init()
-	Migrate(db)
-	defer db.Close()
-
-	r := gin.Default()
+func AddRoutes(r *gin.Engine) {
 
 	v1 := r.Group("/api")
 	users.UsersRegister(v1.Group("/users"))
@@ -43,19 +41,22 @@ func main() {
 	// Simple /api/ping -> "pong"
 	testAuth := r.Group("/api/ping")
 
-	testAuth.GET("/", func(c *gin.Context) {
+	testAuth.GET("/", logger.SetLogger(), func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
+}
 
+func InitDb(db *gorm.DB) {
 	// Check if wew have already created user below
 	var user users.UserModel
 	chk1 := db.Begin()
 	res := chk1.First(&user)
 	chk1.Commit()
 	if res.Error != nil {
-		// test 1 to 1
+		log.Info().Msg("INIT: Adding users")
+
 		tx1 := db.Begin()
 		userA := users.UserModel{
 			Username: "AAAAAAAAAAAAAAAA",
@@ -64,34 +65,47 @@ func main() {
 			Image:    nil,
 		}
 		tx1.Save(&userA)
+
+		userB := users.UserModel{
+			Username: "BBBBBBBBBBBBBBBB",
+			Email:    "bbbb@g.cn",
+			Bio:      "Bee bop",
+			Image:    nil,
+		}
+		tx1.Save(&userB)
 		tx1.Commit()
+
 		fmt.Println(userA)
+		fmt.Println(userB)
+		fmt.Println()
 	} else {
-		fmt.Println("Initial user exists")
+		log.Info().Msg("INIT: Initial user exists")
+	}
+}
+
+func main() {
+
+	// Setup logging
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if gin.IsDebugging() {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 
-	// Old initialisation code - ran always :(
-	// // test 1 to 1
-	// tx1 := db.Begin()
-	// userA := users.UserModel{
-	// 	Username: "AAAAAAAAAAAAAAAA",
-	// 	Email:    "aaaa@g.cn",
-	// 	Bio:      "hehddeda",
-	// 	Image:    nil,
-	// }
-	// tx1.Save(&userA)
-	// tx1.Commit()
-	// fmt.Println(userA)
+	log.Logger = log.Output(
+		zerolog.ConsoleWriter{
+			Out:     os.Stderr,
+			NoColor: false,
+		},
+	)
 
-	// TODO: What is this - seems broken!
-	//db.Save(&ArticleUserModel{
-	//    UserModelID:userA.ID,
-	//})
-	//var userAA ArticleUserModel
-	//db.Where(&ArticleUserModel{
-	//    UserModelID:userA.ID,
-	//}).First(&userAA)
-	//fmt.Println(userAA)
+	db := common.Init()
+	Migrate(db)
+	defer db.Close()
+
+	r := gin.Default()
+	AddRoutes(r)
+
+	InitDb(db)
 
 	r.Run() // listen and serve on 0.0.0.0:8080
 }

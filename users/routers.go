@@ -2,7 +2,6 @@ package users
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -74,11 +73,7 @@ func ProfileUnfollow(c *gin.Context) {
 
 func AllUsers(c *gin.Context) {
 	users, count, err := FindAllUsers()
-
-	fmt.Printf("AllUsers(): err = %v\n", err)
-
 	if err == nil {
-		fmt.Println("  seraliszing...")
 		serializer := UsersSerializer{c, users}
 		c.JSON(http.StatusOK, gin.H{"users": serializer.Response(), "usersCount": count})
 	} else {
