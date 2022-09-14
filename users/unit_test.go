@@ -80,13 +80,16 @@ func TestUserModel(t *testing.T) {
 	c := users[2]
 	asserts.Equal(0, len(a.GetFollowings()), "GetFollowings should be right before following")
 	asserts.Equal(false, a.isFollowing(b), "isFollowing relationship should be right at init")
+
 	a.following(b)
 	asserts.Equal(1, len(a.GetFollowings()), "GetFollowings should be right after a following b")
 	asserts.Equal(true, a.isFollowing(b), "isFollowing should be right after a following b")
+
 	a.following(c)
 	asserts.Equal(2, len(a.GetFollowings()), "GetFollowings be right after a following c")
 	asserts.EqualValues(b, a.GetFollowings()[0], "GetFollowings should be right")
 	asserts.EqualValues(c, a.GetFollowings()[1], "GetFollowings should be right")
+
 	a.unFollowing(b)
 	asserts.Equal(1, len(a.GetFollowings()), "GetFollowings should be right after a unFollowing b")
 	asserts.EqualValues(c, a.GetFollowings()[0], "GetFollowings should be right after a unFollowing b")
@@ -342,7 +345,7 @@ var unauthRequestTests = []struct {
 		"PUT",
 		`{"password": "password321"}}`,
 		http.StatusUnprocessableEntity,
-		`{"errors":{"Email":"{key: email}","Username":"{key: alphanum}"}}`,
+		`{"errors":{"Email":"{key: required}","Username":"{key: required}"}}`,
 		"test database pk error for user update",
 	},
 	{
