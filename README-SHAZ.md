@@ -96,3 +96,8 @@ What seems to be being built is - [rs/zerolog](https://github.com/rs/zerolog/blo
 
 Build command is `go build ./...` - no space after `./`
 Test command is also `go test ./...`
+
+## See also
+
+[Managing dependencies](https://go.dev/doc/modules/managing-dependencies#adding_dependency)
+[Go update all modules](https://stackoverflow.com/questions/67201708/go-update-all-modules)
