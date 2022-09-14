@@ -19,8 +19,8 @@
 37265  go build
 37266  go test
 
-build should have been `go build ./ ...` (space between ./ and ...)
-test should have neen `go test ./ ...` (space between ./ and ...)
+~~build should have been `go build ./ ...` (space between ./ and ...)~~
+~~test should have neen `go test ./ ...` (space between ./ and ...)~~
 
 37270  go mod graph
 37272  cat go.sum
@@ -52,6 +52,12 @@ Reverted some changes to find a silly bug, now redoing
 37461  go get "github.com/rs/zerolog"
 37462  go get "github.com/rs/zerolog/log"
 37463  go build
+
+How this got here :)
+
+37518  history | grep go | grep ^37 | grep go >> README-SHAZ.md
+
+## Broken stuff that I got wrong - no extra space after ./ in build and test
 
 37477  go build ./ ...
 37480  go mod tidy
@@ -86,6 +92,7 @@ Tried to downgrade above to v22.3.2 which is in github, but that failed
 ??? Maybe we don't need to `go build ./ ...` after all the error only shows when that command is run
 What seems to be being built is - [rs/zerolog](https://github.com/rs/zerolog/blob/master/go.sum)
 
-How this got here :)
+## Correction
 
-37518  history | grep go | grep ^37 | grep go >> README-SHAZ.md
+Build command is `go build ./...` - no space after `./`
+Test command is also `go test ./...`
