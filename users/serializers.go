@@ -60,27 +60,9 @@ func (self *UserSerializer) Response() UserResponse {
 	return user
 }
 
-// TODO: Now no longer needed - see TODO: above
-type AltUserSerializer struct {
-	c *gin.Context
-	UserModel
-}
-
 type UsersSerializer struct {
 	c     *gin.Context
 	Users []UserModel
-}
-
-func (self *AltUserSerializer) Response() UserResponse {
-	// myUserModel := self.c.MustGet("my_user_model").(UserModel)
-	user := UserResponse{
-		Username: self.Username,
-		Email:    self.Email,
-		Bio:      self.Bio,
-		Image:    self.Image,
-		Token:    common.GenToken(self.ID),
-	}
-	return user
 }
 
 func (s *UsersSerializer) Response() []UserResponse {

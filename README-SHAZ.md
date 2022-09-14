@@ -3,7 +3,8 @@
 ## Go commands and Stuff
 
 - build everything - local modules and `main`
-  - `go build ./ ...`
+  - ~~`go build ./...` - this may be wrong! (or may need both)~~
+  - `go build` - needed to rebuild routes for some reason!
 - list modules
   - `go list -m`
 - update modules
